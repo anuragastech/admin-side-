@@ -5,6 +5,7 @@ const hbs = require('hbs');
 const path = require('path');
 const mongoose = require('mongoose');
 const registerModel = require('./mongodb');
+const productModel=require('./productAdd')
 
 const bcrypt=require('bcryptjs')
 const jwt= require('jsonwebtoken');
@@ -60,7 +61,7 @@ app.use(express.static(path.join(__dirname, 'img')));
 app.use(express.static(path.join(__dirname, 'lib')));
 app.use(express.static(path.join(__dirname, 'js')));
 
-
+// ---------------------------------------------------------------------------------------------------------
 app.post('/signup', async (req, res) => {
     try {
         const { name, email, password, } = req.body;
@@ -105,7 +106,7 @@ app.post('/login', async (req, res) => {
 
             // Cookies setting
             const options = {
-                expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+                expires: new Date(Date.now() + 3 * 60 * 1000),  // 3 minutes in milliseconds
                 httpOnly: true,
             };
 
@@ -123,6 +124,35 @@ app.post('/login', async (req, res) => {
     }
 });
 
+
+// ---------------------------------------------------------------------------------------------------------------
+
+
+app.post('/productAdd',async(req,res)=>{
+    try{
+    const{productName,manufactureName,brand,price,discription,category,subcategory,productImage}=req.body;
+    const newProduct =new productModel({
+            productname: productName,
+            manufacturename: manufactureName,
+            brand: brand,
+            price: price,
+            discription: discription,
+            category: category,
+            subcategory: subcategory,
+            productImage: productImage,
+    })
+
+    await newProduct.save();
+    res.redirect('/login')
+  }  catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+})
+  
+
+
+ 
 app.get('/home', (req, res) => {
   
     const token = req.cookies.token;
@@ -145,9 +175,9 @@ app.get('/login', (req, res) => {
     res.render('login');
 });
 
-// app.get('/home', (req, res) => {
-//     res.render('home');
-// });
+app.get('/productAdd', (req, res) => {
+    res.render('productAdd');
+});
 
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
