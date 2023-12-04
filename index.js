@@ -9,7 +9,10 @@ const productModel=require('./productAdd')
 
 const bcrypt=require('bcryptjs')
 const jwt= require('jsonwebtoken');
-const cookieParser=require('cookie-parser')
+const cookieParser=require('cookie-parser');
+const Category = require('./category');
+const subcategory=require('./subcategory');
+const productAdd = require('./productAdd');
 
 
 
@@ -36,7 +39,7 @@ const cookieParser=require('cookie-parser')
 
 
 const app = express();
-const port = 3001;
+const port = 3002;
 
 app.set('view engine', 'hbs');
 
@@ -130,7 +133,9 @@ app.post('/login', async (req, res) => {
 
 app.post('/productAdd',async(req,res)=>{
     try{
-    const{productName,manufactureName,brand,price,discription,category,subcategory,productImage}=req.body;
+    const{productName,manufactureName,brand,price,discription,productImage}=req.body;
+    const category = req.params.category;
+    const subcategory = req.params.subcategory;
     const newProduct =new productModel({
             productname: productName,
             manufacturename: manufactureName,
@@ -176,8 +181,83 @@ app.get('/login', (req, res) => {
 });
 
 app.get('/productAdd', (req, res) => {
+// category.findOne({attributes:['id','title']})
+// .then((categories) => {
+//     console.log(categories);
+//     const viewsData={
+//         edit:false,
+//         categories,
+//         pageTitle:'productAdd'
+//     };
+    
+// })
+
     res.render('productAdd');
 });
+
+// app.get('/productAdd', (req, res) => {
+
+    
+//         res.render('productAdd');
+//     });
+
+
+// app.get('/productDetails', async (req, res) => {
+//     try {
+//       const productId = req.params.productId;
+//       const product = await Product.findById(productId)
+//         .populate('category')
+//         .populate('subcategory')
+//         .exec();
+  
+//       res.render('productDetails', { product });
+//     } catch (error) {
+//       console.error(error);
+//       res.status(500).send('Internal Server Error');
+//     }
+//   });
+
+
+
+
+app.get('/productAdd', async (req, res) => {
+    try {
+
+        const{men,women}=req.params
+        const categories = await Category.find({}, 'men women'); 
+        
+        const viewsData = {
+            edit: false,
+            categories,
+            pageTitle: 'productAdd'
+        };
+        
+        res.render('productAdd', viewsData);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+
+//   // Get subcategories by category
+//   app.get('/subcategories/:category', async (req, res) => {
+//     const { category } = req.params;
+  
+//     try {
+//       const categoryId = await category.findOne({ name: category });
+  
+//       if (!categoryId) {
+//         return res.status(404).json({ error: 'Category not found' });
+//       }
+  
+//       const subcategories = await subcategory.find({ category: categoryId });
+//       res.json({ subcategories });
+//     } catch (error) {
+//       res.status(500).json({ error: error.message });
+//     }
+//   });
+
+
 
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);

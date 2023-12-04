@@ -6,6 +6,9 @@
 
     <title>Add Product</title>
         <link rel="stylesheet" href="productAdd.css">
+        <!-- Add this script tag to include Axios -->
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
 
 
 </head>
@@ -19,7 +22,7 @@
         <input type="text" id="productName" name="productName" name="productName" required>
 
         <label for="manufactureName">Manufacture Name:</label>
-        <input type="text" id="manufactureName" name="manufactureName" name="manufactureName" required>
+        <input type="text" id="manufactureName"  name="manufactureName" required>
 
         <label for="manufactureBrand">Manufacture Brand:</label>
         <input type="text" id="manufactureBrand" name="brand" required>
@@ -30,44 +33,85 @@
         <label for="productDescription">Product Description:</label>
         <textarea id="productDescription" type="text"  name="discription" required></textarea>
 
-        <label for="category">Category:</label>
-        <select id="category" name="category" required>
-            <option value="men">Men</option>
-            <option value="women">Women</option>
-            <!-- Add more categories as needed -->
+
+        <label for="category">Select Category:</label>
+        <select id="categoryId" name="category" required>
+            <option value="">Select Category</option>
+            {{#each categories}}
+                <option value="men">{{men}}</option>
+                <option value="women">{{women}}</option>
+            {{/each}}
         </select>
-
-        <label for="subcategory">Subcategory:</label>
-        <select id="subcategory" name="subcategory" required>
-         
-
-            
-            <option value="men">shirt</option>
-            <option value="women">jeans</option>
-
-         
-            <option value="shirts">t-shirt</option>
-            <option value="pants">Pants</option>
-            <option value="pants">trousers</option>
-            <option value="pants">mens-casuals</option>
-            <option value="pants">night-dresses</option>
-            <option value="pants">saree</option>
-            <option value="pants">t-shirts-for-girls</option>
-            <option value="pants">Kurtha-sets</option>
-            <option value="pants">jeans-for-her</option>
-            <!-- Add more subcategories as needed -->
-        </select>
+        <label for="subcategory">Select Subcategory:</label>
+        <select id="subcategory" name="subcategory" required></select>
+        
 
 
-        <label for="productImage">Product Image URL:</label>
-        <div class="upload-btn-wrapper">
-            <button class="btn">Browse Image</button>
-            <input type="file" name="productImage" id="productImage" accept="image/*" required>
-        </div>
 
 
-        <button type="submit">Add Product</button>
-    </form>
+
+
+<label for="productImage">Product Image URL:</label> 
+<div class="upload-btn-wrapper"> <button class="btn">Browse Image</button>
+ <input type="file" name="productImage" id="productImage" accept="image/*" required> </div>
+  <button type="submit">Add Product</button> </form>
+
+<
+
+
+
+
+{{!-- 
+
+ <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const categoryDropdown = document.getElementById('categoryId');
+            const subcategoryDropdown = document.getElementById('subcategory');
+
+            function updateCategoriesAndSubcategories() {
+                // Fetch categories from the server
+                fetch('/api/categories')
+                    .then(response => response.json())
+                    .then(data => {
+                        // Populate category dropdown
+                        populateDropdown(categoryDropdown, data.categories);
+
+                        // Call the function to update subcategories based on the default selected category
+                        updateSubcategories();
+                    })
+                    .catch(error => console.error('Error fetching categories:', error));
+            }
+
+            function updateSubcategories() {
+                const selectedCategory = categoryDropdown.value;
+
+                // Clear existing options
+                subcategoryDropdown.innerHTML = '';
+
+                // Fetch subcategories for the selected category from the server
+                fetch(`/api/subcategories/${selectedCategory}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Populate subcategory dropdown
+                        populateDropdown(subcategoryDropdown, data.subcategories);
+                    })
+                    .catch(error => console.error('Error fetching subcategories:', error));
+            }
+
+            function populateDropdown(dropdown, options) {
+                options.forEach(option => {
+                    dropdown.add(new Option(option, option));
+                });
+            }
+
+            // Attach the updateCategoriesAndSubcategories function to the change event of the category dropdown
+            categoryDropdown.addEventListener('change', updateSubcategories);
+
+            // Initial population of categories and subcategories when the page loads
+            updateCategoriesAndSubcategories();
+        });
+    </script> --}}
+
 
 </body>
 </html>
