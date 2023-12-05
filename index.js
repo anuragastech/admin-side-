@@ -13,28 +13,16 @@ const cookieParser=require('cookie-parser');
 const Category = require('./category');
 const subcategory=require('./subcategory');
 const productAdd = require('./productAdd');
+const category = require('./category');
+const cloudinary =require('./cloudinary');
+
+const multer =require('./multerconfig');
 
 
 
 
 
 
-
-
-// const createToken = async () => {
-//     try {
-//         const token = await jwt.sign({ _id: "65658a0a8eca5111293f9021" }, "mynameissomethinglikestartwithathatsit");
-//         console.log(token);
-
-//         const userVerified = jwt.verify(token, "mynameissomethinglikestartwithathatsit");
-//         console.log("userVerified", userVerified);
-//     } catch (error) {
-      
-//         console.error(error);
-//     }
-// };
-
-// createToken();
 
 
 
@@ -133,9 +121,11 @@ app.post('/login', async (req, res) => {
 
 app.post('/productAdd',async(req,res)=>{
     try{
-    const{productName,manufactureName,brand,price,discription,productImage}=req.body;
-    const category = req.params.category;
-    const subcategory = req.params.subcategory;
+
+    const category= await category.findById(req.body.category);
+    if(!category)return res.status(400).send('invalid category')
+
+    const{productName,manufactureName,brand,price,subcategory,discription,productImage}=req.body;
     const newProduct =new productModel({
             productname: productName,
             manufacturename: manufactureName,
@@ -181,41 +171,11 @@ app.get('/login', (req, res) => {
 });
 
 app.get('/productAdd', (req, res) => {
-// category.findOne({attributes:['id','title']})
-// .then((categories) => {
-//     console.log(categories);
-//     const viewsData={
-//         edit:false,
-//         categories,
-//         pageTitle:'productAdd'
-//     };
-    
-// })
+
 
     res.render('productAdd');
 });
 
-// app.get('/productAdd', (req, res) => {
-
-    
-//         res.render('productAdd');
-//     });
-
-
-// app.get('/productDetails', async (req, res) => {
-//     try {
-//       const productId = req.params.productId;
-//       const product = await Product.findById(productId)
-//         .populate('category')
-//         .populate('subcategory')
-//         .exec();
-  
-//       res.render('productDetails', { product });
-//     } catch (error) {
-//       console.error(error);
-//       res.status(500).send('Internal Server Error');
-//     }
-//   });
 
 
 
@@ -239,26 +199,56 @@ app.get('/productAdd', async (req, res) => {
 });
 
 
-//   // Get subcategories by category
-//   app.get('/subcategories/:category', async (req, res) => {
-//     const { category } = req.params;
-  
-//     try {
-//       const categoryId = await category.findOne({ name: category });
-  
-//       if (!categoryId) {
-//         return res.status(404).json({ error: 'Category not found' });
-//       }
-  
-//       const subcategories = await subcategory.find({ category: categoryId });
-//       res.json({ subcategories });
-//     } catch (error) {
-//       res.status(500).json({ error: error.message });
-//     }
-//   });
+
+app.get('/category', async (req, res) => {
+    try {
+        const { id ,title, description, image } = req.query;
+       
+        const categoryList = await category.find({}, ' id title description image');
 
 
+        if (!categoryList) {
+            return res.status(500).json({ success: false });
+        }
 
+        res.render('category', { categories: categoryList });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false });
+    }
+});
+
+const upload = multer.single('image');
+// ------------------------------------------------------------------------------------------------------------------
+
+app.post('/category', upload, async (req, res) => {
+    try {
+        const { title, description } = req.body;
+
+        // Check if req.file exists before using it
+        if (!req.file) {
+            return res.status(400).json({ success: false, message: 'No file uploaded' });
+        }
+
+        const result = await cloudinary.uploader.upload(req.file.path);
+
+        const newCategory = new category({
+            title: title,
+            description: description,
+            image: {
+                public_id: result.public_id,
+                url: result.secure_url
+            },
+        });
+
+        const savedCategory = await newCategory.save();
+
+        res.render('category', { category: savedCategory });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
 });

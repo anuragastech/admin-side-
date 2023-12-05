@@ -1,5 +1,6 @@
 const mongoose=require('mongoose')
-// const category=require('./category')
+
+
 
 const createSchema = mongoose.Schema({
     productname: {

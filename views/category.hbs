@@ -1,0 +1,50 @@
+<!-- product.hbs -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{product.name}}</title>
+    <link rel="stylesheet" href="path/to/your/styles.css">
+</head>
+<body>
+
+
+
+   
+       <form action="/category" method="POST"  enctype="multipart/form-data">
+        <label for="title">Title:</label>
+        <input type="text" id="title" name="title" required>
+
+        <label for="description">Description:</label>
+        <textarea id="description" name="description" required></textarea>
+
+
+
+<label for="image">Choose an image:</label>
+   <input type="file" name="image">
+    <button type="submit">Upload</button>
+        <button type="submit">Submit</button>
+        
+    </form>
+
+
+
+
+      <h1>Category List</h1>
+{{#if categories}}
+    <ul>
+        {{#each categories}}
+            <li>
+                <strong>{{title}}</strong>: {{description}} - <img src="{{image.url}}" alt="{{title}} Image">
+            </li>
+        {{/each}}
+    </ul>
+{{else}}
+    <p>No categories found.</p>
+{{/if}}
+
+    
+</body>
+</html>
