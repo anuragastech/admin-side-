@@ -32,19 +32,60 @@
 
 
 
-      <h1>Category List</h1>
-{{#if categories}}
-    <ul>
-        {{#each categories}}
-            <li>
-                <strong>{{title}}</strong>: {{description}} - <img src="{{image.url}}" alt="{{title}} Image">
-            </li>
-        {{/each}}
-    </ul>
+
+           <h1>Category List</h1>
+
+{{!-- Opening each block --}}
+<!-- views/category.hbs -->
+{{#each categories}}
+    <div>
+        <h3>{{title}}</h3>
+        <p>{{description}}</p>
+        <img src="{{image.url}}" alt="{{title}} Image">
+
+        <!-- Form for deleting the category -->
+        <form class="delete-form">
+            <input type="hidden" name="id" value="{{_id}}">
+<a    href="/delete/{{_id}}">
+<div class="button2">
+    <button class="bttn2" style="width: 120px; height: 50px;" type="button" onclick="deleteUser()">Delete</button></a>     
+       </form>
+    </div>
 {{else}}
     <p>No categories found.</p>
-{{/if}}
+{{/each}}
 
-    
+{{!-- </div>
+<a    href="/delete">
+<div class="button2">
+ <button  class="bttn2"  style="width: 120px ; height:50px ; " type="button"  onclick="deleteUser()">Delete</button>
+</a>
+</div> --}}
+ {{!-- <a href="/delete/{{_id}}">
+  <div class="button2">
+    <button class="bttn2" style="width: 120px; height: 50px;" type="button" onclick="deleteUser()">Delete</button>
+  </div>
+</a> --}}
+
+<script>
+  function deleteUser() {
+    const categoryId = document.querySelector('input[name="id"]').value;
+
+    fetch(`/delete/${categoryId}`, {
+      method: 'DELETE',
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Delete request failed');
+        } else {
+          document.location.href = "/";
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }
+</script>
+
 </body>
 </html>

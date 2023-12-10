@@ -230,8 +230,15 @@ app.post('/category', upload, async (req, res) => {
             return res.status(400).json({ success: false, message: 'No file uploaded' });
         }
 
-        const result = await cloudinary.uploader.upload(req.file.path);
+        const desiredWidth = 300;
+        const desiredHeight = 200;
 
+        const result = await cloudinary.uploader.upload(req.file.path, {
+            width: desiredWidth,
+            height: desiredHeight,
+            crop: 'scale' // Maintain aspect ratio
+        });
+        
         const newCategory = new category({
             title: title,
             description: description,
@@ -249,6 +256,43 @@ app.post('/category', upload, async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 });
+
+
+app.delete('/delete/:_id', async (req, res) => {
+    try {
+        const { _id } = req.params;
+
+        // Step 1: Find the Cloudinary public ID from the Category document
+        const category = await Category.findOne({ _id});
+
+        if (!category) {
+            return res.status(404).json({ success: false, message: 'Category not found' });
+        }
+
+        // Assuming the public ID is stored in the image field of the Category document
+        const publicId = category.image.public_id;
+
+        // Step 2: Use Cloudinary SDK to delete the file
+        cloudinary.uploader.destroy(publicId, function(result) {
+            if (result.error) {
+                console.error(result.error.message);
+            } else {
+                console.log(result);
+            }
+        });
+        // Step 3: Delete the Category document from MongoDB
+        await category.remove();
+
+        res.status(200).json({ success: true, message: 'Category deleted successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+});
+
+
+
+
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
 });
