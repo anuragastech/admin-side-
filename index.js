@@ -27,7 +27,7 @@ const multer =require('./multerconfig');
 
 
 const app = express();
-const port = 3002;
+const port = 3000;
 
 app.set('view engine', 'hbs');
 
@@ -258,37 +258,90 @@ app.post('/category', upload, async (req, res) => {
 });
 
 
-app.delete('/delete/:_id', async (req, res) => {
+// app.delete('/delete', async (req, res) => {
+//     try {
+
+//         const category = await Category.findById(req.params.id);
+
+//         if (!category) {
+//             return res.status(404).json({ success: false, message: 'Category not found' });
+//         }
+//         const { image} = req.params;
+
+//         const publicId = category.image && category.image.public_id;
+
+//         if (!publicId) {
+//             return res.status(400).json({ success: false, message: 'Missing public_id for Cloudinary' });
+//         }
+
+//         const deletionResult = await cloudinary.uploader.destroy(publicId);
+
+//         if (deletionResult.result === 'ok') {
+//             await category.deleteOne();
+//             res.status(200).json({ success: true, message: 'Category deleted successfully' });
+//         } else {
+//             res.status(500).json({ success: false, message: 'Cloudinary deletion failed' });
+//         }
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ success: false, message: 'Internal Server Error' });
+//     }
+// });
+
+
+
+// **********************************************************************************************************
+app.get('/subcategories', async (req, res) => {
     try {
-        const { _id } = req.params;
+        const subcategories = await subcategory.find({}, 'title description image');
 
-        // Step 1: Find the Cloudinary public ID from the Category document
-        const category = await Category.findOne({ _id});
-
-        if (!category) {
-            return res.status(404).json({ success: false, message: 'Category not found' });
-        }
-
-        // Assuming the public ID is stored in the image field of the Category document
-        const publicId = category.image.public_id;
-
-        // Step 2: Use Cloudinary SDK to delete the file
-        cloudinary.uploader.destroy(publicId, function(result) {
-            if (result.error) {
-                console.error(result.error.message);
-            } else {
-                console.log(result);
-            }
-        });
-        // Step 3: Delete the Category document from MongoDB
-        await category.remove();
-
-        res.status(200).json({ success: true, message: 'Category deleted successfully' });
+        // Assuming your rendering engine is set up to use the 'subcategories' template
+        res.render('subcategories', { subcategories });
     } catch (error) {
         console.error(error);
         res.status(500).json({ success: false, message: 'Internal Server Error' });
     }
 });
+
+app.post('/subcategories', upload, async (req, res) => {
+    try {
+        const { title, description } = req.body;
+
+        // Check if req.file exists before using it
+        if (!req.file) {
+            return res.status(400).json({ success: false, message: 'No file uploaded' });
+        }
+
+        const desiredWidth = 300;
+        const desiredHeight = 200;
+
+        const photo = await cloudinary.uploader.upload(req.file.path, {
+            width: desiredWidth,
+            height: desiredHeight,
+            crop: 'scale' // Maintain aspect ratio
+        });
+        
+        const newsubCategory = new subcategory({
+            title: title,
+            description: description,
+            image: {
+                public_id: photo.public_id,
+                url: photo.secure_url
+            },
+        });
+
+        const savedCategory = await newsubCategory.save();
+
+        res.render('subcategories', { subcategory: savedCategory });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+
+
+
 
 
 

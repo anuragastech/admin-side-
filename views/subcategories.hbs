@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    
+
+
+<h2>Add Subcategory</h2>
+
+<form action="/subcategories" method="POST" enctype="multipart/form-data">
+  <label for="title">Title:</label>
+  <input type="text" id="title" name="title" required>
+
+  <label for="description">Description:</label>
+  <textarea id="description" name="description" required></textarea>
+
+  <label for="image">Image:</label>
+  <input type="file" id="image" name="image" accept="image/*" required>
+  <button type="submit">Upload</button>
+  <!-- Assuming you have a dropdown to select the category -->
+  {{!-- <label for="category">Category:</label>
+  <select id="category" name="category" required> --}}
+    <!-- Populate this dropdown with existing categories from your database -->
+    <!-- For each category, create an <option> tag -->
+    <!-- Example: <option value="{{categoryId}}">{{categoryTitle}}</option> -->
+  </select>
+
+  <button type="submit">Add Subcategory</button>
+</form>
+
+
+
+{{#each subcategories}}
+    <div>
+        <h3>{{title}}</h3>
+        <p>{{description}}</p>
+        <img src="{{image.url}}" alt="{{title}} Image">
+    </div>
+{{else}}
+    <p>No subcategories found.</p>
+{{/each}}
+
+</body>
+</html>
