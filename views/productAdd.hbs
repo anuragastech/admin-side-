@@ -16,101 +16,117 @@
 
     <!-- <h1>Add Product</h1> -->
 
-    <form action="/productAdd"  method="POST">
+    <form action="/productAdd" method="POST" enctype="multipart/form-data" >
 
-        <label for="productName">Product Name:</label>
-        <input type="text" id="productName" name="productName" name="productName" required>
+  <label for="productName">Product Name:</label>
+  <input type="text" id="productName" name="productname" required>
 
-        <label for="manufactureName">Manufacture Name:</label>
-        <input type="text" id="manufactureName"  name="manufactureName" required>
+  <label for="manufactureName">Manufacture Name:</label>
+  <input type="text" id="manufactureName" name="manufacturename" required>
 
-        <label for="manufactureBrand">Manufacture Brand:</label>
-        <input type="text" id="manufactureBrand" name="brand" required>
+  <label for="manufactureBrand">Manufacture Brand:</label>
+  <input type="text" id="manufactureBrand" name="brand" required>
 
-        <label for="productPrice">Product Price:</label>
-        <input type="number" id="productPrice" name="price" required>
+  <label for="productPrice">Product Price:</label>
+  <input type="number" id="productPrice" name="price" required>
 
-        <label for="productDescription">Product Description:</label>
-        <textarea id="productDescription" type="text"  name="discription" required></textarea>
+  <label for="productDescription">Product Description:</label>
+  <textarea id="productDescription" name="description" required></textarea>
 
-
-        <label for="category">Select Category:</label>
-        <select id="categoryId" name="category" required>
-            <option value="">Select Category</option>
-            {{#each categories}}
-                <option value="men">{{men}}</option>
-                <option value="women">{{women}}</option>
-            {{/each}}
-        </select>
-        <label for="subcategory">Select Subcategory:</label>
-        <select id="subcategory" name="subcategory" required></select>
-        
+      {{!-- ***************************************************** --}}
 
 
 
 
 
 
-<label for="productImage">Product Image URL:</label> 
-<div class="upload-btn-wrapper"> <button class="btn">Browse Image</button>
- <input type="file" name="productImage" id="productImage" accept="image/*" required> </div>
-  <button type="submit">Add Product</button> </form>
-
-<
-
-
+  <label for="category">Category:</label>
+  <select id="category" name="category" required>
+    {{#each categories}}
+      <option value="{{_id}}">{{title}}</option>
+    {{/each}}
+  </select>
 
 
-{{!-- 
 
- <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const categoryDropdown = document.getElementById('categoryId');
-            const subcategoryDropdown = document.getElementById('subcategory');
+     <label for="subcategory">SubCategory:</label>
+  <select id="subcategory" name="subcategory" required>
+    {{#each subcategories}}
+      <option value="{{_id}}">{{title}}</option>
+    {{/each}}
 
-            function updateCategoriesAndSubcategories() {
-                // Fetch categories from the server
-                fetch('/api/categories')
-                    .then(response => response.json())
-                    .then(data => {
-                        // Populate category dropdown
-                        populateDropdown(categoryDropdown, data.categories);
 
-                        // Call the function to update subcategories based on the default selected category
-                        updateSubcategories();
-                    })
-                    .catch(error => console.error('Error fetching categories:', error));
-            }
 
-            function updateSubcategories() {
-                const selectedCategory = categoryDropdown.value;
+  </select>
 
-                // Clear existing options
-                subcategoryDropdown.innerHTML = '';
 
-                // Fetch subcategories for the selected category from the server
-                fetch(`/api/subcategories/${selectedCategory}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        // Populate subcategory dropdown
-                        populateDropdown(subcategoryDropdown, data.subcategories);
-                    })
-                    .catch(error => console.error('Error fetching subcategories:', error));
-            }
+ <label for="image">Image:</label>
+  <input type="file" id="image" name="image" accept="image/*" required>
 
-            function populateDropdown(dropdown, options) {
-                options.forEach(option => {
-                    dropdown.add(new Option(option, option));
-                });
-            }
+  <button type="button" id="uploadButton">Upload</button>
+  <button type="submit">Add Product</button>
 
-            // Attach the updateCategoriesAndSubcategories function to the change event of the category dropdown
-            categoryDropdown.addEventListener('change', updateSubcategories);
 
-            // Initial population of categories and subcategories when the page loads
-            updateCategoriesAndSubcategories();
+</form>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    try {
+      const response = await axios.get('/categories');
+      const categories = response.data.categories;
+
+      if (categories.length) {
+        const categorySelect = document.getElementById('category');
+
+        categories.forEach(category => {
+          const option = document.createElement('option');
+          option.value = category._id;
+          option.textContent = category.title;
+          categorySelect.appendChild(option);
         });
-    </script> --}}
+      } else {
+        console.error('No categories found.');
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error.message);
+    }
+  });
+</script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    try {
+      const responsed = await axios.get('/subcategory');
+      const subcategories = responsed.data.subcategories;
+
+      if (subcategories.length) {
+        const subcategorySelect = document.getElementById('subcategory');
+
+        subcategories.forEach(subcategory => {
+          const option = document.createElement('option');
+          option.value = subcategory._id;
+          option.textContent = subcategory.title;
+          
+          subcategorySelect.appendChild(option);
+        });
+      } else {
+        console.error('No subcategories found.');
+      }
+    } catch (error) {
+      console.error('Error fetching subcategories:', error.message);
+    }
+  });
+</script>
+
+
+
+
+
 
 
 </body>

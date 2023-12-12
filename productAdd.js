@@ -19,20 +19,36 @@ const createSchema = mongoose.Schema({
     type: String,
     required: true
   },
-  discription: {
+  description: {
     type: String,
     required: true
   },
-  Category: {
+  image:{
+    public_id:{
+     type:String,
+     required:true,
+    },
+    url:{
+     type:String,
+     required:true,
+    }
+  },
+  userId:{
+     type:mongoose.Schema.Types.ObjectId,
+     ref:'registers'
+  },
+  category: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Category',
+    ref: 'category',
     required: true,
   },
+
  
+
 
   subcategory: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'SubCategory',
+    ref: 'subcategory',
     required: true,
 
   },

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    
+
+    <h1>Product Details</h1>
+
+    {{#each products}}
+    <div class="product">
+        <h2>{{this.productname}}</h2>
+        <p><strong>Manufacture Name:</strong> {{this.manufacturename}}</p>
+        <p><strong>Brand:</strong> {{this.brand}}</p>
+        <p><strong>Price:</strong> {{this.price}}</p>
+        <p><strong>Description:</strong> {{this.description}}</p>
+        <p><strong>Category:</strong> {{this.category.title}}</p>
+        <p><strong>Subcategory:</strong> {{this.subcategory.title}}</p>
+        <img src="{{this.image.url}}" alt="{{this.productname}} Image" style="max-width: 300px; height: auto;">
+    </div>
+    {{/each}}
+
+</body>
+</html>

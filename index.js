@@ -10,9 +10,9 @@ const productModel=require('./productAdd')
 const bcrypt=require('bcryptjs')
 const jwt= require('jsonwebtoken');
 const cookieParser=require('cookie-parser');
-const Category = require('./category');
+// const Category = require('./category');
 const subcategory=require('./subcategory');
-const productAdd = require('./productAdd');
+const product = require('./productAdd');
 const category = require('./category');
 const cloudinary =require('./cloudinary');
 
@@ -20,6 +20,7 @@ const multer =require('./multerconfig');
 
 
 
+const upload = multer.single('image');
 
 
 
@@ -27,7 +28,8 @@ const multer =require('./multerconfig');
 
 
 const app = express();
-const port = 3000;
+const port = 3005;
+
 
 app.set('view engine', 'hbs');
 
@@ -119,31 +121,30 @@ app.post('/login', async (req, res) => {
 // ---------------------------------------------------------------------------------------------------------------
 
 
-app.post('/productAdd',async(req,res)=>{
-    try{
+// app.post('/productAdd',async(req,res)=>{
+//     try{
 
-    const category= await category.findById(req.body.category);
-    if(!category)return res.status(400).send('invalid category')
+//         const categories = await Category.find(); 
+//         res.json({ categories });
+//     const{productName,manufactureName,brand,price,subcategory,discription,productImage}=req.body;
+//     const newProduct =new productModel({
+//             productname: productName,
+//             manufacturename: manufactureName,
+//             brand: brand,
+//             price: price,
+//             discription: discription,
+//             category: category,
+//             subcategory: subcategory,
+//             productImage: productImage,
+//     })
 
-    const{productName,manufactureName,brand,price,subcategory,discription,productImage}=req.body;
-    const newProduct =new productModel({
-            productname: productName,
-            manufacturename: manufactureName,
-            brand: brand,
-            price: price,
-            discription: discription,
-            category: category,
-            subcategory: subcategory,
-            productImage: productImage,
-    })
-
-    await newProduct.save();
-    res.redirect('/login')
-  }  catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-})
+//     await newProduct.save();
+//     res.redirect('/login')
+//   }  catch (error) {
+//         console.error(error);
+//         res.status(500).json({ message: 'Internal server error' });
+//     }
+// })
   
 
 
@@ -180,23 +181,74 @@ app.get('/productAdd', (req, res) => {
 
 
 
-app.get('/productAdd', async (req, res) => {
-    try {
+// app.get('/productAdd', async (req, res) => {
+//     try {
 
-        const{men,women}=req.params
-        const categories = await Category.find({}, 'men women'); 
+//         const{men,women}=req.params
+//         const categories = await category.find({}, 'men women'); 
         
-        const viewsData = {
-            edit: false,
-            categories,
-            pageTitle: 'productAdd'
-        };
+//         const viewsData = {
+//             edit: false,
+//             categories,
+//             pageTitle: 'productAdd'
+//         };
         
-        res.render('productAdd', viewsData);
+//         res.render('productAdd', viewsData);
+//     } catch (error) {
+//         res.status(500).json({ error: error.message });
+//     }
+// });
+
+app.post('/productAdd', upload, async (req, res) => {
+    try {
+        const { productname, manufacturename, brand, price, description, category, subcategory } = req.body;
+
+        if (!req.file) {
+            return res.status(400).json({ success: false, message: 'File not provided' });
+        }
+
+        
+
+        const desiredWidth = 300;
+        const desiredHeight = 200;
+
+        const photo = await cloudinary.uploader.upload(req.file.path, {
+            width: desiredWidth,
+            height: desiredHeight,
+            crop: 'scale' // Maintain aspect ratio
+        });
+
+        const newProduct = new product({
+            productname: productname,
+            manufacturename: manufacturename,
+            brand: brand,
+            price: price,
+            description: description,
+            category: category,
+            subcategory: subcategory,
+            image: {
+                public_id: photo.public_id,
+                url: photo.secure_url,
+            },
+        });
+
+
+        const savedProduct = await newProduct.save();
+        const categories = await category.find();
+
+        res.status(201).json({
+            success: true,
+            message: 'Product added successfully',
+            product: savedProduct,
+            categories: categories,
+        });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Internal Server Error' });
     }
 });
+
+
 
 
 
@@ -218,8 +270,9 @@ app.get('/category', async (req, res) => {
     }
 });
 
-const upload = multer.single('image');
+// const upload = multer.single('image');
 // ------------------------------------------------------------------------------------------------------------------
+
 
 app.post('/category', upload, async (req, res) => {
     try {
@@ -258,10 +311,11 @@ app.post('/category', upload, async (req, res) => {
 });
 
 
+
 app.delete('/delete', async (req, res) => {
     try {
 
-        const category = await Category.findById(req.params.id);
+        const category = await category.findById(req.params.id);
 
         if (!category) {
             return res.status(404).json({ success: false, message: 'Category not found' });
@@ -305,7 +359,7 @@ app.get('/subcategories', async (req, res) => {
 
 app.post('/subcategories', upload, async (req, res) => {
     try {
-        const { title, description } = req.body;
+        const { title, description,category } = req.body;
 
         // Check if req.file exists before using it
         if (!req.file) {
@@ -328,7 +382,9 @@ app.post('/subcategories', upload, async (req, res) => {
                 public_id: photo.public_id,
                 url: photo.secure_url
             },
+            category: category,
         });
+
 
         const savedCategory = await newsubCategory.save();
 
@@ -339,7 +395,37 @@ app.post('/subcategories', upload, async (req, res) => {
     }
 });
 
+app.get('/categories', async (req, res) => {
+    try {
+      const categories = await category.find(); // Adjust the query as needed
+      res.json({ categories });
+    } catch (error) {
+      console.error('Error fetching categories:', error.message);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
+  
+  app.get('/subcategory', async (req, res) => {
+    try {
+      const subcategories = await subcategory.find(); 
+      res.json({ subcategories });
+    } catch (error) {
+      console.error('Error fetching categories:', error.message);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
+  
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+app.get('/productdetails', async (req, res) => {
+    try {
+        const products = await product.find().populate('category').populate('subcategory');
+        res.render('productdetails', { products });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+});
 
 
 
@@ -349,4 +435,6 @@ app.post('/subcategories', upload, async (req, res) => {
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
 });
+
+
 
