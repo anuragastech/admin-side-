@@ -6,7 +6,7 @@
 
     <title>Add Product</title>
         <link rel="stylesheet" href="productAdd.css">
-        <!-- Add this script tag to include Axios -->
+
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
 
@@ -14,9 +14,8 @@
 </head>
 <body>
 
-    <!-- <h1>Add Product</h1> -->
 
-    <form action="/productAdd" method="POST" enctype="multipart/form-data" >
+    <form action="/admin/productAdd" method="POST" enctype="multipart/form-data" >
 
   <label for="productName">Product Name:</label>
   <input type="text" id="productName" name="productname" required>
@@ -63,7 +62,7 @@
  <label for="image">Image:</label>
   <input type="file" id="image" name="image" accept="image/*" required>
 
-  <button type="button" id="uploadButton">Upload</button>
+  {{!-- <button type="button" id="uploadButton">Upload</button> --}}
   <button type="submit">Add Product</button>
 
 
@@ -75,7 +74,7 @@
 <script>
   document.addEventListener('DOMContentLoaded', async () => {
     try {
-      const response = await axios.get('/categories');
+      const response = await axios.get('admin/categories');
       const categories = response.data.categories;
 
       if (categories.length) {
@@ -101,7 +100,7 @@
 <script>
   document.addEventListener('DOMContentLoaded', async () => {
     try {
-      const responsed = await axios.get('/subcategory');
+      const responsed = await axios.get('admin/subcategory');
       const subcategories = responsed.data.subcategories;
 
       if (subcategories.length) {

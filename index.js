@@ -28,7 +28,7 @@ const upload = multer.single('image');
 
 
 const app = express();
-const port = 3005;
+const port = 3006;
 
 
 app.set('view engine', 'hbs');
@@ -55,12 +55,17 @@ app.use(express.static(path.join(__dirname, 'lib')));
 app.use(express.static(path.join(__dirname, 'js')));
 
 // ---------------------------------------------------------------------------------------------------------
+
+// const upload = multer.single('image');
+
+
+
 app.post('/signup', async (req, res) => {
     try {
         const { name, email, password, } = req.body;
 const myEncriptPassword=await bcrypt.hash(password, 10)
 
-        const newRegister = new registerModel({
+        const newRegister = new resgister({
             name: name,
             password: myEncriptPassword,
             email: email,
@@ -68,10 +73,10 @@ const myEncriptPassword=await bcrypt.hash(password, 10)
 
 
         await newRegister.save();
-        const token= jwt.sign({id:registerModel._id},"mynameissomethinglikestartwithathatsit",{expiresIn:"2h"});
+        const token= jwt.sign({id:resgister._id},"mynameissomethinglikestartwithathatsit",{expiresIn:"2h"});
 
-        registerModel.token=token
-        registerModel.password=undefined
+        resgister.token=token
+        resgister.password=undefined
    
         res.redirect('/login');
 
@@ -86,7 +91,7 @@ const myEncriptPassword=await bcrypt.hash(password, 10)
 app.post('/login', async (req, res) => {
     try {
         const { email, password } = req.body;
-        const user = await registerModel.findOne({ email });
+        const user = await resgister.findOne({ email });
 
         if (user && (await bcrypt.compare(password, user.password))) {
             console.log("Authentication successful");
@@ -97,16 +102,16 @@ app.post('/login', async (req, res) => {
             user.token = token;
             user.password = undefined;
 
-            // Cookies setting
+            // Cookies setting***
             const options = {
-                expires: new Date(Date.now() + 3 * 60 * 1000),  // 3 minutes in milliseconds
+                expires: new Date(Date.now() + 30 * 60 * 1000),  // 3 minutes in millisecond
                 httpOnly: true,
             };
 
            
             res.cookie("token", token, options);
 
-            return res.redirect('home');
+            return res.redirect('/home');
         } else {
             return res.status(401).json({ message: "Invalid email or password" });
         }
@@ -118,43 +123,13 @@ app.post('/login', async (req, res) => {
 });
 
 
-// ---------------------------------------------------------------------------------------------------------------
 
-
-// app.post('/productAdd',async(req,res)=>{
-//     try{
-
-//         const categories = await Category.find(); 
-//         res.json({ categories });
-//     const{productName,manufactureName,brand,price,subcategory,discription,productImage}=req.body;
-//     const newProduct =new productModel({
-//             productname: productName,
-//             manufacturename: manufactureName,
-//             brand: brand,
-//             price: price,
-//             discription: discription,
-//             category: category,
-//             subcategory: subcategory,
-//             productImage: productImage,
-//     })
-
-//     await newProduct.save();
-//     res.redirect('/login')
-//   }  catch (error) {
-//         console.error(error);
-//         res.status(500).json({ message: 'Internal server error' });
-//     }
-// })
-  
-
-
- 
 app.get('/home', (req, res) => {
   
     const token = req.cookies.token;
 
     if (token) {
-        return res.render('home');
+        return res.render('/home');
     } else {
         return res.redirect('/login');
     }
@@ -164,40 +139,55 @@ app.get('/home', (req, res) => {
 
 
 app.get('/signup', (req, res) => {
-    res.render('signup');
+    const token = req.cookies.token;
+
+    if (token) {
+        return res.redirect('/home');
+    }
+    res.render('/signup');
 });
 
+
 app.get('/login', (req, res) => {
-    res.render('login');
+    const token = req.cookies.token;
+
+    if (token) {
+        return res.redirect('/home');
+    }
+
+    return res.render('/login');
 });
+
+
+
+// app.get('/login', (req, res) => {
+//     res.render('/login');
+// });
 
 app.get('/productAdd', (req, res) => {
 
+    res.render('/productAdd');
+});
 
-    res.render('productAdd');
+
+app.get('/category', (req, res) => {
+
+
+    res.render('/category');
+});
+
+app.get('/subcategory', (req, res) => {
+
+
+    res.render('/category');
 });
 
 
 
 
 
-// app.get('/productAdd', async (req, res) => {
-//     try {
 
-//         const{men,women}=req.params
-//         const categories = await category.find({}, 'men women'); 
-        
-//         const viewsData = {
-//             edit: false,
-//             categories,
-//             pageTitle: 'productAdd'
-//         };
-        
-//         res.render('productAdd', viewsData);
-//     } catch (error) {
-//         res.status(500).json({ error: error.message });
-//     }
-// });
+// ---------------------------------------------------------------------------
 
 app.post('/productAdd', upload, async (req, res) => {
     try {
@@ -207,15 +197,13 @@ app.post('/productAdd', upload, async (req, res) => {
             return res.status(400).json({ success: false, message: 'File not provided' });
         }
 
-        
-
         const desiredWidth = 300;
         const desiredHeight = 200;
 
         const photo = await cloudinary.uploader.upload(req.file.path, {
             width: desiredWidth,
             height: desiredHeight,
-            crop: 'scale' // Maintain aspect ratio
+            crop: 'scale'
         });
 
         const newProduct = new product({
@@ -232,16 +220,9 @@ app.post('/productAdd', upload, async (req, res) => {
             },
         });
 
-
         const savedProduct = await newProduct.save();
-        const categories = await category.find();
 
-        res.status(201).json({
-            success: true,
-            message: 'Product added successfully',
-            product: savedProduct,
-            categories: categories,
-        });
+        res.redirect(`/productdetails`);
     } catch (error) {
         console.error(error);
         res.status(500).json({ success: false, message: 'Internal Server Error' });
@@ -252,7 +233,8 @@ app.post('/productAdd', upload, async (req, res) => {
 
 
 
-app.get('/category', async (req, res) => {
+
+app.get('/categorylist', async (req, res) => {
     try {
         const { id ,title, description, image } = req.query;
        
@@ -263,14 +245,60 @@ app.get('/category', async (req, res) => {
             return res.status(500).json({ success: false });
         }
 
-        res.render('category', { categories: categoryList });
+        res.render('/categorylist', { categories: categoryList });
     } catch (error) {
         console.error(error);
         res.status(500).json({ success: false });
     }
 });
 
-// const upload = multer.single('image');
+
+
+app.get('/edit-category/:id', async (req, res) => {
+    try {
+        const categoryId = req.params.id;
+        const category = await category.findOne({ _id: ObjectId(categoryId) });
+
+        if (!category) {
+            return res.status(404).json({ success: false, message: 'Category not found' });
+        }
+
+        res.render('/edit-category', { category });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false });
+    }
+});
+
+
+app.put('/edit-category/:categoryId', async (req, res) => {
+    try {
+        const categoryId = req.params.categoryId;
+        const { title, description } = req.body;
+
+        if (!title || !description) {
+            return res.status(400).json({ success: false, message: 'Incomplete data for category update' });
+        }
+
+        const updatedCategory = await category.updateOne(
+            { _id: ObjectId(categoryId) },
+            {
+                $set: {
+                    title: title,
+                    description: description,
+                },
+            },
+            { new: true } 
+        );
+
+        res.status(200).json({ success: true, message: 'Category updated successfully', updatedCategory });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false });
+    }
+});
+
+
 // ------------------------------------------------------------------------------------------------------------------
 
 
@@ -278,7 +306,6 @@ app.post('/category', upload, async (req, res) => {
     try {
         const { title, description } = req.body;
 
-        // Check if req.file exists before using it
         if (!req.file) {
             return res.status(400).json({ success: false, message: 'No file uploaded' });
         }
@@ -289,7 +316,7 @@ app.post('/category', upload, async (req, res) => {
         const result = await cloudinary.uploader.upload(req.file.path, {
             width: desiredWidth,
             height: desiredHeight,
-            crop: 'scale' // Maintain aspect ratio
+            crop: 'scale' 
         });
         
         const newCategory = new category({
@@ -303,7 +330,7 @@ app.post('/category', upload, async (req, res) => {
 
         const savedCategory = await newCategory.save();
 
-        res.render('category', { category: savedCategory });
+        res.redirect('/categorylist');
     } catch (error) {
         console.error(error);
         res.status(500).json({ success: false, error: error.message });
@@ -311,36 +338,70 @@ app.post('/category', upload, async (req, res) => {
 });
 
 
+// Logout route
+app.get("/logout", (req, res) => {
+    res.clearCookie("token");
 
-app.delete('/delete', async (req, res) => {
-    try {
-
-        const category = await category.findById(req.params.id);
-
-        if (!category) {
-            return res.status(404).json({ success: false, message: 'Category not found' });
-        }
-        const { image} = req.params;
-
-        const publicId = category.image && category.image.public_id;
-
-        if (!publicId) {
-            return res.status(400).json({ success: false, message: 'Missing public_id for Cloudinary' });
-        }
-
-        const deletionResult = await cloudinary.uploader.destroy(publicId);
-
-        if (deletionResult.result === 'ok') {
-            await category.deleteOne();
-            res.status(200).json({ success: true, message: 'Category deleted successfully' });
-        } else {
-            res.status(500).json({ success: false, message: 'Cloudinary deletion failed' });
-        }
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ success: false, message: 'Internal Server Error' });
-    }
+    res.redirect("/login");
 });
+
+
+app.delete("/delete/:id", async (req, res) => {
+    try {
+      const categoryId = req.params.id;
+      const deleteCategory = await category.findOneAndDelete({ title: categoryId });
+  
+      if (!deleteCategory) {
+        return res.status(404).json({ message: "Category not found" });
+      }
+  
+      return res.redirect("/categorylist");
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Error deleting category data", error: error.message });
+    }
+  });
+  
+  
+  
+  
+  
+ 
+  
+  
+  app.get("/delete", (req, res) => {
+    res.redirect("/categorylist");
+  });
+  
+
+
+
+
+//   --------------------------------------------------
+
+app.delete("/delete/product/:id", async (req, res) => {
+    try {
+      const productId = req.params.id;
+      const deleteproduct = await product.findOneAndDelete({ productname: productId });
+  
+      if (!deleteproduct) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+  
+      return res.redirect("/productdetails");
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Error deleting product data", error: error.message });
+    }
+  });
+
+  app.get("/delete", (req, res) => {
+    res.redirect("/productdetails");
+  });
+  
+
+
+
 
 
 
@@ -349,8 +410,7 @@ app.get('/subcategories', async (req, res) => {
     try {
         const subcategories = await subcategory.find({}, 'title description image');
 
-        // Assuming your rendering engine is set up to use the 'subcategories' template
-        res.render('subcategories', { subcategories });
+        res.render('/subcategories', { subcategories });
     } catch (error) {
         console.error(error);
         res.status(500).json({ success: false, message: 'Internal Server Error' });
@@ -361,7 +421,6 @@ app.post('/subcategories', upload, async (req, res) => {
     try {
         const { title, description,category } = req.body;
 
-        // Check if req.file exists before using it
         if (!req.file) {
             return res.status(400).json({ success: false, message: 'No file uploaded' });
         }
@@ -372,7 +431,7 @@ app.post('/subcategories', upload, async (req, res) => {
         const photo = await cloudinary.uploader.upload(req.file.path, {
             width: desiredWidth,
             height: desiredHeight,
-            crop: 'scale' // Maintain aspect ratio
+            crop: 'scale' 
         });
         
         const newsubCategory = new subcategory({
@@ -388,7 +447,7 @@ app.post('/subcategories', upload, async (req, res) => {
 
         const savedCategory = await newsubCategory.save();
 
-        res.render('subcategories', { subcategory: savedCategory });
+        res.render('/subcategories', { subcategory: savedCategory });
     } catch (error) {
         console.error(error);
         res.status(500).json({ success: false, error: error.message });
@@ -397,7 +456,7 @@ app.post('/subcategories', upload, async (req, res) => {
 
 app.get('/categories', async (req, res) => {
     try {
-      const categories = await category.find(); // Adjust the query as needed
+      const categories = await category.find(); 
       res.json({ categories });
     } catch (error) {
       console.error('Error fetching categories:', error.message);
@@ -420,14 +479,12 @@ app.get('/categories', async (req, res) => {
 app.get('/productdetails', async (req, res) => {
     try {
         const products = await product.find().populate('category').populate('subcategory');
-        res.render('productdetails', { products });
+        res.render('/productdetails', { products });
     } catch (error) {
         console.error(error);
         res.status(500).json({ success: false, message: 'Internal Server Error' });
     }
 });
-
-
 
 
 

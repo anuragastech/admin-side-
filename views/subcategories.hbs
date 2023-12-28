@@ -11,7 +11,7 @@
 
 <h2>Add Subcategory</h2>
 
-<form action="/subcategories" method="POST" enctype="multipart/form-data">
+<form action="/admin/subcategories" method="POST" enctype="multipart/form-data">
   <label for="title">Title:</label>
   <input type="text" id="title" name="title" required>
 
@@ -71,7 +71,7 @@
 <script>
   document.addEventListener('DOMContentLoaded', async () => {
     try {
-      const response = await axios.get('/categories');
+      const response = await axios.get('/admin/categories');
       const categories = response.data.categories;
 
       if (categories.length) {
